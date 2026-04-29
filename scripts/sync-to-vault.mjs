@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
-const src = resolve(repoRoot, "coffee-calculator.html");
+const src = resolve(repoRoot, "index.html");
 
 const VAULT_PATH = process.env.OBSIDIAN_VAULT_PATH
   || "C:/Users/chris/Obsidian Vault";

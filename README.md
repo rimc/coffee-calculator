@@ -4,7 +4,7 @@ A single-file HTML brewing companion that scales the four coffee recipes
 from the Obsidian vault note `Notes & Reference/Coffee Recipes.md` and
 walks you through each brew with audio-cued timed steps. Mobile-first.
 
-**Live:** https://coffee-calc-fawn.vercel.app/
+**Live:** https://rimc.github.io/coffee-calculator/
 
 Design context lives at `PRODUCT.md` (strategy) and `DESIGN.md` (visual
 system). The original brainstorming spec is in the Obsidian vault at
@@ -12,9 +12,9 @@ system). The original brainstorming spec is in the Obsidian vault at
 
 ## Files
 
-- `coffee-calculator.html` - the canonical source; everything is inline (CSS + JS), no build step, no dependencies, no network calls at runtime.
-- `vercel.json` - rewrite so `/` serves the calculator on Vercel.
-- `package.json` - hosts `sync`, `test`, and `deploy` scripts.
+- `index.html` - the canonical source; everything is inline (CSS + JS), no build step, no dependencies, no network calls at runtime.
+- `.nojekyll` - tells GitHub Pages to skip Jekyll processing and serve the file as-is.
+- `package.json` - hosts the `sync` and `test` scripts.
 
 ## Usage
 
@@ -22,9 +22,9 @@ system). The original brainstorming spec is in the Obsidian vault at
 
 ```bash
 # Just open the file in a browser
-start coffee-calculator.html      # Windows
-open  coffee-calculator.html      # macOS
-xdg-open coffee-calculator.html   # Linux
+start index.html      # Windows
+open  index.html      # macOS
+xdg-open index.html   # Linux
 ```
 
 ### Run the test suite
@@ -32,29 +32,34 @@ xdg-open coffee-calculator.html   # Linux
 Append `?test` to the URL:
 
 ```
-file:///.../coffee-calculator.html?test
+file:///.../index.html?test
 ```
 
-A pass/fail summary is injected at the top of the page.
-
-### Deploy to Vercel
-
-The Obsidian iframe and the "Open in browser" link in
-`Notes & Reference/Coffee Calculator.md` both point at the hosted URL.
-After editing the calculator locally, deploy:
+A pass/fail summary is injected at the top of the page. Or run the
+headless logic tests:
 
 ```bash
-npm run deploy
+npm test
 ```
 
-This runs `vercel --prod --yes`. The stable production alias
-(`coffee-calc-fawn.vercel.app`) gets re-pointed to the new build.
+### Deploy
+
+The hosted copy is served by GitHub Pages straight from `main`. To
+publish a change:
+
+```bash
+git push
+```
+
+Pages rebuilds in 30-90 seconds. The stable URL is
+`https://rimc.github.io/coffee-calculator/`.
 
 ### Sync to Obsidian vault (offline backup)
 
 A copy lives at `<vault>/Notes & Reference/attachments/coffee-calculator.html`
-as an offline fallback. The Obsidian note no longer references it,
-but it stays in sync so the file is available without network:
+as an offline fallback. The Obsidian note points at the hosted URL,
+but the local copy stays in sync so the file is available without
+network:
 
 ```bash
 npm run sync
@@ -63,7 +68,7 @@ npm run sync
 ## Editing recipes
 
 Recipes live in the `RECIPES` object near the top of the `<script>` block
-inside `coffee-calculator.html`. Each recipe has:
+inside `index.html`. Each recipe has:
 
 - `defaultDose` (g)
 - `ratio` (water = dose * ratio)

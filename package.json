@@ -5,7 +5,6 @@
   "description": "Single-file HTML brewing companion synced into the Obsidian vault",
   "scripts": {
     "sync": "node scripts/sync-to-vault.mjs",
-    "test": "node scripts/test-logic.mjs",
-    "deploy": "vercel --prod --yes"
+    "test": "node scripts/test-logic.mjs"
   }
 }

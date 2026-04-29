@@ -7,7 +7,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const html = readFileSync(resolve(__dirname, "..", "coffee-calculator.html"), "utf8");
+const html = readFileSync(resolve(__dirname, "..", "index.html"), "utf8");
 
 // Extract the script body (between the only <script> tag).
 const m = html.match(/<script>([\s\S]*?)<\/script>/);

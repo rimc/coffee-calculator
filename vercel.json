@@ -1,5 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/", "destination": "/coffee-calculator.html" }
-  ]
-}
