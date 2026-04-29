@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#6f4e37">
+<title>Coffee calculator</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #f3eee2;
+    --surface-2: #ebe6dc;
+    --border: #e8e2d4;
+    --fg: #222;
+    --fg-muted: #777;
+    --fg-dim: #aaa;
+    --accent: #6f4e37;
+    --accent-fg: #ffffff;
+    --warn: #a85a3c;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #2a2620;
+      --surface: #36302a;
+      --surface-2: #423b33;
+      --border: #4a4239;
+      --fg: #f5f0e8;
+      --fg-muted: #bba88a;
+      --fg-dim: #8a7e6e;
+      --accent: #d4a574;
+      --accent-fg: #2a2620;
+      --warn: #c87a5a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 18px 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 100vh;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-dim);
+    margin-bottom: 6px;
+  }
+  .pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    flex: 1 1 auto;
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 22px;
+    background: var(--surface-2);
+    color: var(--fg-muted);
+    font-size: 14px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    user-select: none;
+  }
+  .pill:active { transform: scale(0.97); }
+  .pill[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-color: var(--accent);
+  }
+  .dose {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .dose-num {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .dose-num small {
+    font-size: 14px;
+    color: var(--fg-muted);
+    font-weight: 400;
+    margin-left: 2px;
+  }
+  .dose-buttons {
+    display: flex;
+    gap: 8px;
+  }
+  .dose-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: none;
+    background: var(--surface-2);
+    color: var(--fg);
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .dose-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .dose-btn:active:not(:disabled) { transform: scale(0.95); }
+  .amounts {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 6px 16px;
+  }
+  .amount-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .amount-row:last-child { border-bottom: none; }
+  .amount-row .key { color: var(--fg-muted); }
+  .amount-row .val { font-weight: 600; color: var(--fg); }
+  .recipe-notes {
+    font-size: 13px;
+    color: var(--fg-muted);
+    font-style: italic;
+    padding: 0 4px;
+  }
+  .steps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 10px;
+  }
+  .step-row {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .step-row .t {
+    color: var(--fg-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .step-row.done { color: var(--fg-dim); }
+  .step-row.done .t { color: var(--fg-dim); }
+  .step-row.current {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+  .step-row.current .t { color: var(--accent-fg); opacity: 0.85; }
+  .timer-block {
+    text-align: center;
+    padding: 8px 0 4px;
+  }
+  .timer-big {
+    font-size: 64px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer-target {
+    font-size: 14px;
+    color: var(--fg-muted);
+    margin-top: 6px;
+    min-height: 1em;
+  }
+  .timer-target strong { color: var(--fg); }
+  .btn-primary, .btn-secondary {
+    margin-top: auto;
+    border: none;
+    padding: 16px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: var(--shadow);
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+  .btn-secondary {
+    background: var(--warn);
+    color: #fff;
+  }
+  .btn-primary:active, .btn-secondary:active { transform: scale(0.99); }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 13px;
+    color: var(--fg-muted);
+  }
+  .header strong { color: var(--fg); font-size: 15px; }
+  .summary-pills .pill {
+    flex: 0 0 auto;
+    min-height: 28px;
+    padding: 5px 10px;
+    font-size: 12px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-color: var(--accent);
+  }
+  #test-output {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    color: var(--fg);
+  }
+  #test-output .pass { color: #2a8a3a; }
+  #test-output .fail { color: var(--warn); font-weight: bold; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+"use strict";
+
+// ---------- Recipe data ----------
+
+const RECIPES = {
+  pourOver: {
+    id: "pourOver",
+    name: "Pour over",
+    defaultDose: 20,
+    ratio: 16.65,
+    grind: "Medium-fine",
+    notes: "Rinse/preheat dripper. Hotter water for lighter roast.",
+    steps: [
+      { at: 0,   label: "Bloom",    targetFn: d => `${Math.round(d*2)}-${Math.round(d*3)} g, swirl` },
+      { at: 75,  label: "Pour 1",   targetFn: d => `Pour to ${Math.round(d*16.65*0.6)} g` },
+      { at: 105, label: "Pour 2",   targetFn: d => `Pour to ${Math.round(d*16.65)} g` },
+      { at: 180, label: "Drawdown", targetFn: () => "Stir, swirl, let it draw" },
+    ],
+  },
+  frenchPress: {
+    id: "frenchPress",
+    name: "French press",
+    defaultDose: 30,
+    ratio: 15.67,
+    grind: "Coarse (4 clicks open)",
+    notes: "~2 heaping tbsp at default dose.",
+    steps: [
+      { at: 0,   label: "Pour water",   targetFn: d => `Add ${Math.round(d*15.67)} g hot water` },
+      { at: 240, label: "Stir / scoop", targetFn: () => "Stir, scoop the crust" },
+      { at: 540, label: "Press",        targetFn: () => "Plunge just past surface, pour" },
+    ],
+  },
+  iced: {
+    id: "iced",
+    name: "Iced",
+    defaultDose: 32.5,
+    ratio: 9.23,
+    iceRatio: 6.15,
+    grind: "A bit finer than usual filter",
+    notes: "Japanese-style. Pour over fresh ice in a glass to serve.",
+    steps: [
+      { at: 0,   label: "Ice + bloom", targetFn: d => `Ice ${Math.round(d*6.15)} g, bloom ${Math.round(d*2)}-${Math.round(d*3)} g` },
+      { at: 45,  label: "Main pour",   targetFn: d => `Pour to ${Math.round(d*9.23)} g hot water` },
+      { at: 165, label: "Stir + swirl", targetFn: () => "One CW, one CCW, then swirl" },
+    ],
+  },
+  coldBrew: {
+    id: "coldBrew",
+    name: "Cold brew",
+    defaultDose: 80,
+    ratio: 17.5,
+    grind: "Coarse",
+    notes: "Steep 12-24 h in fridge, then filter. No live timer.",
+    steps: [],
+  },
+};
+
+const RECIPE_ORDER = ["frenchPress", "pourOver", "iced", "coldBrew"];
+
+// ---------- State ----------
+
+const DOSE_MIN = 5;
+const DOSE_MAX = 200;
+
+const state = {
+  recipeId: "pourOver",
+  dose: 20,
+  mode: "setup",       // 'setup' | 'brew'
+  startedAt: null,
+  currentStepIndex: -1,
+};
+
+// ---------- Pure helpers ----------
+
+function clampDose(d) {
+  if (Number.isNaN(d)) return DOSE_MIN;
+  return Math.max(DOSE_MIN, Math.min(DOSE_MAX, d));
+}
+
+function formatGrams(g) {
+  if (g >= 100) return Math.round(g) + " g";
+  return (Math.round(g * 10) / 10).toString().replace(/\.0$/, "") + " g";
+}
+
+function formatTime(seconds) {
+  const s = Math.max(0, Math.floor(seconds));
+  const mm = Math.floor(s / 60);
+  const ss = s % 60;
+  return mm + ":" + String(ss).padStart(2, "0");
+}
+
+// Computes summary amounts shown on the setup screen.
+function derive(recipe, dose) {
+  const out = {
+    water: dose * recipe.ratio,
+    grind: recipe.grind,
+  };
+  if (recipe.id === "pourOver") {
+    out.bloomLow = dose * 2;
+    out.bloomHigh = dose * 3;
+    out.pour1 = dose * recipe.ratio * 0.6;
+    out.pour2 = dose * recipe.ratio;
+    out.brewTime = "~3:00";
+  } else if (recipe.id === "frenchPress") {
+    out.brewTime = "~9:00";
+  } else if (recipe.id === "iced") {
+    out.hotWater = dose * recipe.ratio;       // 9.23
+    out.ice = dose * recipe.iceRatio;          // 6.15
+    out.water = out.hotWater + out.ice;        // total brew weight
+    out.bloomLow = dose * 2;
+    out.bloomHigh = dose * 3;
+    out.brewTime = "~3:00";
+  } else if (recipe.id === "coldBrew") {
+    out.brewTime = "12-24 h";
+  }
+  return out;
+}
+
+// Returns the current step index for a given elapsed time, or -1 if before the first step.
+function currentStepFor(steps, elapsedSec) {
+  let idx = -1;
+  for (let i = 0; i < steps.length; i++) {
+    if (elapsedSec >= steps[i].at) idx = i;
+    else break;
+  }
+  return idx;
+}
+
+// ---------- Persistence ----------
+
+const STORAGE_KEY = "coffee-calc";
+
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      recipeId: state.recipeId,
+      dose: state.dose,
+    }));
+  } catch (_e) { /* ignore */ }
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && RECIPES[parsed.recipeId]) state.recipeId = parsed.recipeId;
+    if (parsed && typeof parsed.dose === "number") {
+      state.dose = clampDose(parsed.dose);
+    } else {
+      state.dose = RECIPES[state.recipeId].defaultDose;
+    }
+  } catch (_e) { /* ignore */ }
+}
+
+// ---------- Audio ----------
+
+let audioCtx = null;
+
+function ensureAudio() {
+  if (audioCtx) return audioCtx;
+  try {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    if (!Ctor) return null;
+    audioCtx = new Ctor();
+  } catch (_e) {
+    audioCtx = null;
+  }
+  return audioCtx;
+}
+
+function chime(kind) {
+  const ctx = audioCtx;
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const tones = kind === "done" ? [880, 660] : [660];
+  tones.forEach((freq, i) => {
+    const t0 = now + i * 0.18;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(0.18, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.25);
+  });
+}
+
+// ---------- Brew loop ----------
+
+let rafHandle = null;
+
+function brewLoop() {
+  if (state.mode !== "brew") return;
+  const recipe = RECIPES[state.recipeId];
+  const elapsedSec = (Date.now() - state.startedAt) / 1000;
+  const newIdx = currentStepFor(recipe.steps, elapsedSec);
+  if (newIdx !== state.currentStepIndex) {
+    const advancing = newIdx > state.currentStepIndex;
+    state.currentStepIndex = newIdx;
+    render();
+    if (advancing && newIdx >= 0) {
+      const isDone = newIdx === recipe.steps.length - 1;
+      chime(isDone ? "done" : "step");
+    }
+  } else {
+    const timerEl = document.getElementById("timer-big");
+    if (timerEl) timerEl.textContent = formatTime(elapsedSec);
+  }
+  rafHandle = requestAnimationFrame(brewLoop);
+}
+
+function startBrew() {
+  ensureAudio();
+  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  state.mode = "brew";
+  state.startedAt = Date.now();
+  state.currentStepIndex = -1;
+  render();
+  rafHandle = requestAnimationFrame(brewLoop);
+}
+
+function stopBrew() {
+  state.mode = "setup";
+  state.startedAt = null;
+  state.currentStepIndex = -1;
+  if (rafHandle) cancelAnimationFrame(rafHandle);
+  rafHandle = null;
+  render();
+}
+
+// ---------- Rendering ----------
+
+function el(tag, attrs, children) {
+  const node = document.createElement(tag);
+  if (attrs) {
+    for (const k in attrs) {
+      if (k === "class") node.className = attrs[k];
+      else if (k === "html") node.innerHTML = attrs[k];
+      else if (k.startsWith("on") && typeof attrs[k] === "function") {
+        node.addEventListener(k.slice(2), attrs[k]);
+      } else if (attrs[k] === true) node.setAttribute(k, "");
+      else if (attrs[k] !== false && attrs[k] !== null && attrs[k] !== undefined) {
+        node.setAttribute(k, attrs[k]);
+      }
+    }
+  }
+  if (children) {
+    (Array.isArray(children) ? children : [children]).forEach(c => {
+      if (c == null || c === false) return;
+      node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+  }
+  return node;
+}
+
+function renderSetup(recipe) {
+  const d = state.dose;
+  const a = derive(recipe, d);
+  const root = el("div", { class: "setup" });
+
+  // Recipe pills
+  root.appendChild(el("div", { class: "label" }, "Recipe"));
+  const pills = el("div", { class: "pills" });
+  RECIPE_ORDER.forEach(id => {
+    const r = RECIPES[id];
+    const p = el("div", {
+      class: "pill",
+      role: "button",
+      "aria-pressed": id === state.recipeId ? "true" : "false",
+      onclick: () => {
+        if (id === state.recipeId) return;
+        state.recipeId = id;
+        state.dose = RECIPES[id].defaultDose;
+        persist();
+        render();
+      },
+    }, r.name);
+    pills.appendChild(p);
+  });
+  root.appendChild(pills);
+
+  // Dose input
+  root.appendChild(el("div", { class: "label" }, "Coffee dose"));
+  const dose = el("div", { class: "dose" });
+  dose.appendChild(el("div", null, [
+    el("div", { class: "dose-num" }, [
+      String(d % 1 === 0 ? d : d.toFixed(1)),
+      el("small", null, " g"),
+    ]),
+  ]));
+  const doseBtns = el("div", { class: "dose-buttons" });
+  const minus = el("button", {
+    class: "dose-btn",
+    "aria-label": "Decrease dose",
+    onclick: () => { state.dose = clampDose(state.dose - 1); persist(); render(); },
+  }, "-");
+  if (d <= DOSE_MIN) minus.disabled = true;
+  const plus = el("button", {
+    class: "dose-btn",
+    "aria-label": "Increase dose",
+    onclick: () => { state.dose = clampDose(state.dose + 1); persist(); render(); },
+  }, "+");
+  if (d >= DOSE_MAX) plus.disabled = true;
+  doseBtns.appendChild(minus); doseBtns.appendChild(plus);
+  dose.appendChild(doseBtns);
+  root.appendChild(dose);
+
+  // Amounts table
+  const amounts = el("div", { class: "amounts" });
+  function addRow(key, val) {
+    amounts.appendChild(el("div", { class: "amount-row" }, [
+      el("span", { class: "key" }, key),
+      el("span", { class: "val" }, val),
+    ]));
+  }
+  if (recipe.id === "pourOver") {
+    addRow("Water (total)", formatGrams(a.water));
+    addRow("Bloom", formatGrams(a.bloomLow) + " - " + formatGrams(a.bloomHigh));
+    addRow("Pour 1 by 1:15", formatGrams(a.pour1));
+    addRow("Pour 2 by 1:45", formatGrams(a.pour2));
+    addRow("Grind", a.grind);
+    addRow("Total time", a.brewTime);
+  } else if (recipe.id === "frenchPress") {
+    addRow("Water", formatGrams(a.water));
+    addRow("Steep 1", "4:00 then stir");
+    addRow("Steep 2", "5-8 min after stir");
+    addRow("Grind", a.grind);
+    addRow("Total time", a.brewTime);
+  } else if (recipe.id === "iced") {
+    addRow("Hot water", formatGrams(a.hotWater));
+    addRow("Ice (in decanter)", formatGrams(a.ice));
+    addRow("Bloom", formatGrams(a.bloomLow) + " - " + formatGrams(a.bloomHigh));
+    addRow("Total brew", formatGrams(a.water));
+    addRow("Grind", a.grind);
+    addRow("Total time", a.brewTime);
+  } else if (recipe.id === "coldBrew") {
+    addRow("Water", formatGrams(a.water));
+    addRow("Steep", a.brewTime);
+    addRow("Grind", a.grind);
+  }
+  root.appendChild(amounts);
+
+  if (recipe.notes) {
+    root.appendChild(el("div", { class: "recipe-notes" }, recipe.notes));
+  }
+
+  // Start button (hidden for cold brew)
+  if (recipe.steps.length > 0) {
+    root.appendChild(el("button", {
+      class: "btn-primary",
+      onclick: startBrew,
+    }, "Start brew"));
+  }
+
+  return root;
+}
+
+function renderBrew(recipe) {
+  const elapsed = state.startedAt ? (Date.now() - state.startedAt) / 1000 : 0;
+  const a = derive(recipe, state.dose);
+  const idx = state.currentStepIndex;
+  const root = el("div", { class: "brew" });
+
+  // Header
+  root.appendChild(el("div", { class: "header" }, [
+    el("strong", null, recipe.name),
+    el("span", null, formatTime(elapsed)),
+  ]));
+
+  // Summary pill
+  const sum = el("div", { class: "pills summary-pills" });
+  let summaryText = state.dose + " g / " + formatGrams(a.water);
+  sum.appendChild(el("div", { class: "pill", "aria-pressed": "true" }, summaryText));
+  root.appendChild(sum);
+
+  // Steps list
+  const steps = el("div", { class: "steps-list" });
+  recipe.steps.forEach((step, i) => {
+    let cls = "step-row";
+    if (i < idx) cls += " done";
+    else if (i === idx) cls += " current";
+    const row = el("div", { class: cls }, [
+      el("span", { class: "t" }, formatTime(step.at)),
+      el("span", null, step.label + " - " + step.targetFn(state.dose)),
+    ]);
+    steps.appendChild(row);
+  });
+  root.appendChild(steps);
+
+  // Big timer
+  const timerBlock = el("div", { class: "timer-block" });
+  timerBlock.appendChild(el("div", { class: "timer-big", id: "timer-big" }, formatTime(elapsed)));
+  let target = "";
+  if (idx >= 0 && idx < recipe.steps.length) {
+    const step = recipe.steps[idx];
+    target = step.label + ": " + step.targetFn(state.dose);
+  } else if (idx < 0) {
+    target = "Get ready...";
+  }
+  timerBlock.appendChild(el("div", { class: "timer-target", id: "timer-target", html: target }));
+  root.appendChild(timerBlock);
+
+  // Stop
+  root.appendChild(el("button", {
+    class: "btn-secondary",
+    onclick: stopBrew,
+  }, "Stop"));
+
+  return root;
+}
+
+function render() {
+  const recipe = RECIPES[state.recipeId];
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  if (state.mode === "brew") app.appendChild(renderBrew(recipe));
+  else app.appendChild(renderSetup(recipe));
+}
+
+// ---------- Tests (run with ?test) ----------
+
+function runTests() {
+  const out = el("pre", { id: "test-output" });
+  document.body.insertBefore(out, document.body.firstChild);
+  const results = [];
+  function eq(label, actual, expected) {
+    const pass = Math.abs(actual - expected) < 0.5 ||
+                 (typeof actual === "string" && actual === expected);
+    results.push({ label, pass, actual, expected });
+  }
+
+  const po = derive(RECIPES.pourOver, 20);
+  eq("pourOver(20).water === 333", Math.round(po.water), 333);
+  eq("pourOver(20).bloomLow === 40", po.bloomLow, 40);
+  eq("pourOver(20).bloomHigh === 60", po.bloomHigh, 60);
+  eq("pourOver(20).pour1 === 200", Math.round(po.pour1), 200);
+  eq("pourOver(20).pour2 === 333", Math.round(po.pour2), 333);
+
+  const fp = derive(RECIPES.frenchPress, 30);
+  eq("frenchPress(30).water === 470", Math.round(fp.water), 470);
+
+  const ic = derive(RECIPES.iced, 32.5);
+  eq("iced(32.5).hotWater === 300", Math.round(ic.hotWater), 300);
+  eq("iced(32.5).ice === 200", Math.round(ic.ice), 200);
+  eq("iced(32.5).water === 500", Math.round(ic.water), 500);
+
+  const cb = derive(RECIPES.coldBrew, 80);
+  eq("coldBrew(80).water === 1400", Math.round(cb.water), 1400);
+
+  // Step advancement
+  const poSteps = RECIPES.pourOver.steps;
+  eq("currentStepFor(po, 0) === 0", currentStepFor(poSteps, 0), 0);
+  eq("currentStepFor(po, 74) === 0", currentStepFor(poSteps, 74), 0);
+  eq("currentStepFor(po, 75) === 1", currentStepFor(poSteps, 75), 1);
+  eq("currentStepFor(po, 105) === 2", currentStepFor(poSteps, 105), 2);
+  eq("currentStepFor(po, 200) === 3", currentStepFor(poSteps, 200), 3);
+
+  // Dose clamp
+  eq("clampDose(0) === 5", clampDose(0), 5);
+  eq("clampDose(300) === 200", clampDose(300), 200);
+  eq("clampDose(20) === 20", clampDose(20), 20);
+
+  // Render
+  let lines = [];
+  let pass = 0, fail = 0;
+  results.forEach(r => {
+    if (r.pass) { pass++; lines.push("PASS  " + r.label); }
+    else { fail++; lines.push("FAIL  " + r.label + " (got " + r.actual + ", expected " + r.expected + ")"); }
+  });
+  out.textContent = "Tests: " + pass + " pass, " + fail + " fail\n\n" + lines.join("\n");
+  if (fail === 0) out.classList.add("pass");
+  else out.classList.add("fail");
+}
+
+// ---------- Boot ----------
+
+window.addEventListener("DOMContentLoaded", () => {
+  load();
+  if (state.dose === undefined || state.dose === null) {
+    state.dose = RECIPES[state.recipeId].defaultDose;
+  }
+  render();
+  document.addEventListener("visibilitychange", () => {
+    if (state.mode === "brew" && !document.hidden) render();
+  });
+  if (location.search.includes("test")) {
+    runTests();
+  }
+});
+</script>
+</body>
+</html>
