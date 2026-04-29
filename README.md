@@ -4,13 +4,17 @@ A single-file HTML brewing companion that scales the four coffee recipes
 from the Obsidian vault note `Notes & Reference/Coffee Recipes.md` and
 walks you through each brew with audio-cued timed steps. Mobile-first.
 
-Design spec lives in the Obsidian vault at
+**Live:** https://coffee-calc-fawn.vercel.app/
+
+Design context lives at `PRODUCT.md` (strategy) and `DESIGN.md` (visual
+system). The original brainstorming spec is in the Obsidian vault at
 `Projects/Coffee Calculator/Coffee Calculator Design Spec.md`.
 
 ## Files
 
-- `coffee-calculator.html` - the canonical source; everything is inline (CSS + JS), no build step, no dependencies, no network calls.
-- `package.json` - just hosts the `sync` script.
+- `coffee-calculator.html` - the canonical source; everything is inline (CSS + JS), no build step, no dependencies, no network calls at runtime.
+- `vercel.json` - rewrite so `/` serves the calculator on Vercel.
+- `package.json` - hosts `sync`, `test`, and `deploy` scripts.
 
 ## Usage
 
@@ -33,17 +37,28 @@ file:///.../coffee-calculator.html?test
 
 A pass/fail summary is injected at the top of the page.
 
-### Sync to Obsidian vault
+### Deploy to Vercel
 
-The Obsidian-facing copy lives at
-`<vault>/Notes & Reference/attachments/coffee-calculator.html`.
-After editing here, copy it over:
+The Obsidian iframe and the "Open in browser" link in
+`Notes & Reference/Coffee Calculator.md` both point at the hosted URL.
+After editing the calculator locally, deploy:
+
+```bash
+npm run deploy
+```
+
+This runs `vercel --prod --yes`. The stable production alias
+(`coffee-calc-fawn.vercel.app`) gets re-pointed to the new build.
+
+### Sync to Obsidian vault (offline backup)
+
+A copy lives at `<vault>/Notes & Reference/attachments/coffee-calculator.html`
+as an offline fallback. The Obsidian note no longer references it,
+but it stays in sync so the file is available without network:
 
 ```bash
 npm run sync
 ```
-
-(Or `cp coffee-calculator.html "<vault>/Notes & Reference/attachments/"`.)
 
 ## Editing recipes
 
