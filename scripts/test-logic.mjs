@@ -69,7 +69,7 @@ eq("currentStepFor(po, 0) === 0", currentStepFor(poSteps, 0), 0);
 eq("currentStepFor(po, 44) === 0", currentStepFor(poSteps, 44), 0);
 eq("currentStepFor(po, 45) === 1", currentStepFor(poSteps, 45), 1);
 eq("currentStepFor(po, 75) === 2", currentStepFor(poSteps, 75), 2);
-eq("currentStepFor(po, 150) === 3", currentStepFor(poSteps, 150), 3);
+eq("currentStepFor(po, 105) === 3", currentStepFor(poSteps, 105), 3);
 
 eq("clampDose(0) === 5", clampDose(0), 5);
 eq("clampDose(300) === 200", clampDose(300), 200);

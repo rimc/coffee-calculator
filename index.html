@@ -176,8 +176,20 @@
   .step-row.current {
     background: var(--accent);
     color: var(--accent-fg);
+    position: relative;
+    overflow: hidden;
   }
   .step-row.current .t { color: var(--accent-fg); opacity: 0.85; }
+  .step-progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--accent-fg);
+    opacity: 0.3;
+    width: 0%;
+    pointer-events: none;
+  }
   .timer-block {
     text-align: center;
     padding: 8px 0 4px;
@@ -279,7 +291,7 @@ const RECIPES = {
       { at: 0,   label: "Bloom",    targetFn: d => `${Math.round(d*2)}-${Math.round(d*3)} g, swirl` },
       { at: 45,  label: "Pour 1",   targetFn: d => `Pour to ${Math.round(d*16.65*0.6)} g` },
       { at: 75,  label: "Pour 2",   targetFn: d => `Pour to ${Math.round(d*16.65)} g` },
-      { at: 150, label: "Drawdown", targetFn: () => "Stir, swirl, let it draw" },
+      { at: 105, label: "Drawdown", targetFn: () => "Stir, swirl, let it draw" },
     ],
   },
   frenchPress: {
@@ -477,6 +489,15 @@ function brewLoop() {
     if (timerEl) timerEl.textContent = elapsedText;
     const headerEl = document.getElementById("header-time");
     if (headerEl) headerEl.textContent = elapsedText;
+    const progressEl = document.getElementById("step-progress");
+    if (progressEl && state.currentStepIndex >= 0) {
+      const cur = recipe.steps[state.currentStepIndex];
+      const next = recipe.steps[state.currentStepIndex + 1];
+      if (next) {
+        const pct = Math.max(0, Math.min(100, ((elapsedSec - cur.at) / (next.at - cur.at)) * 100));
+        progressEl.style.width = pct.toFixed(2) + "%";
+      }
+    }
   }
   rafHandle = requestAnimationFrame(brewLoop);
 }
@@ -655,6 +676,15 @@ function renderBrew(recipe) {
       el("span", { class: "t" }, formatTime(step.at)),
       el("span", null, step.label + ": " + step.targetFn(state.dose)),
     ]);
+    if (i === idx && i < recipe.steps.length - 1) {
+      const next = recipe.steps[i + 1];
+      const stepDuration = next.at - step.at;
+      const stepElapsed = Math.max(0, elapsed - step.at);
+      const pct = Math.max(0, Math.min(100, (stepElapsed / stepDuration) * 100));
+      const progressEl = el("span", { class: "step-progress", id: "step-progress" });
+      progressEl.style.width = pct.toFixed(2) + "%";
+      row.appendChild(progressEl);
+    }
     steps.appendChild(row);
   });
   root.appendChild(steps);
@@ -726,7 +756,7 @@ function runTests() {
   eq("currentStepFor(po, 44) === 0", currentStepFor(poSteps, 44), 0);
   eq("currentStepFor(po, 45) === 1", currentStepFor(poSteps, 45), 1);
   eq("currentStepFor(po, 75) === 2", currentStepFor(poSteps, 75), 2);
-  eq("currentStepFor(po, 150) === 3", currentStepFor(poSteps, 150), 3);
+  eq("currentStepFor(po, 105) === 3", currentStepFor(poSteps, 105), 3);
 
   // Dose clamp
   eq("clampDose(0) === 5", clampDose(0), 5);
