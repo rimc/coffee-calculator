@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#6f4e37">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#fafaf7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#2a2620" media="(prefers-color-scheme: dark)">
 <title>Coffee calculator</title>
 <style>
   :root {
@@ -51,6 +53,7 @@
     flex-direction: column;
     gap: 16px;
     min-height: 100vh;
+    min-height: 100dvh;
   }
   .label {
     font-size: 11px;
@@ -71,12 +74,15 @@
     border-radius: 22px;
     background: var(--surface-2);
     color: var(--fg-muted);
+    font-family: inherit;
     font-size: 14px;
     border: 1.5px solid transparent;
     cursor: pointer;
     text-align: center;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
     user-select: none;
+    appearance: none;
+    -webkit-appearance: none;
   }
   .pill:active { transform: scale(0.97); }
   .pill[aria-pressed="true"] {
@@ -217,7 +223,7 @@
     font-size: 13px;
     color: var(--fg-muted);
   }
-  .header strong { color: var(--fg); font-size: 15px; }
+  .header strong { color: var(--fg); font-size: 15px; font-weight: 600; }
   .summary-pills .pill {
     flex: 0 0 auto;
     min-height: 28px;
@@ -238,6 +244,19 @@
   }
   #test-output .pass { color: #2a8a3a; }
   #test-output .fail { color: var(--warn); font-weight: bold; }
+  .pill:focus-visible,
+  .dose-btn:focus-visible,
+  .btn-primary:focus-visible,
+  .btn-secondary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pill,
+    .step-row {
+      transition: none;
+    }
+  }
 </style>
 </head>
 <body>
@@ -258,9 +277,9 @@ const RECIPES = {
     notes: "Rinse/preheat dripper. Hotter water for lighter roast.",
     steps: [
       { at: 0,   label: "Bloom",    targetFn: d => `${Math.round(d*2)}-${Math.round(d*3)} g, swirl` },
-      { at: 75,  label: "Pour 1",   targetFn: d => `Pour to ${Math.round(d*16.65*0.6)} g` },
-      { at: 105, label: "Pour 2",   targetFn: d => `Pour to ${Math.round(d*16.65)} g` },
-      { at: 180, label: "Drawdown", targetFn: () => "Stir, swirl, let it draw" },
+      { at: 45,  label: "Pour 1",   targetFn: d => `Pour to ${Math.round(d*16.65*0.6)} g` },
+      { at: 75,  label: "Pour 2",   targetFn: d => `Pour to ${Math.round(d*16.65)} g` },
+      { at: 150, label: "Drawdown", targetFn: () => "Stir, swirl, let it draw" },
     ],
   },
   frenchPress: {
@@ -346,7 +365,7 @@ function derive(recipe, dose) {
     out.bloomHigh = dose * 3;
     out.pour1 = dose * recipe.ratio * 0.6;
     out.pour2 = dose * recipe.ratio;
-    out.brewTime = "~3:00";
+    out.brewTime = "~2:30";
   } else if (recipe.id === "frenchPress") {
     out.brewTime = "~9:00";
   } else if (recipe.id === "iced") {
@@ -453,8 +472,11 @@ function brewLoop() {
       chime(isDone ? "done" : "step");
     }
   } else {
+    const elapsedText = formatTime(elapsedSec);
     const timerEl = document.getElementById("timer-big");
-    if (timerEl) timerEl.textContent = formatTime(elapsedSec);
+    if (timerEl) timerEl.textContent = elapsedText;
+    const headerEl = document.getElementById("header-time");
+    if (headerEl) headerEl.textContent = elapsedText;
   }
   rafHandle = requestAnimationFrame(brewLoop);
 }
@@ -513,9 +535,9 @@ function renderSetup(recipe) {
   const pills = el("div", { class: "pills" });
   RECIPE_ORDER.forEach(id => {
     const r = RECIPES[id];
-    const p = el("div", {
+    const p = el("button", {
+      type: "button",
       class: "pill",
-      role: "button",
       "aria-pressed": id === state.recipeId ? "true" : "false",
       onclick: () => {
         if (id === state.recipeId) return;
@@ -566,8 +588,8 @@ function renderSetup(recipe) {
   if (recipe.id === "pourOver") {
     addRow("Water (total)", formatGrams(a.water));
     addRow("Bloom", formatGrams(a.bloomLow) + " - " + formatGrams(a.bloomHigh));
-    addRow("Pour 1 by 1:15", formatGrams(a.pour1));
-    addRow("Pour 2 by 1:45", formatGrams(a.pour2));
+    addRow("Pour 1 by 0:45", formatGrams(a.pour1));
+    addRow("Pour 2 by 1:15", formatGrams(a.pour2));
     addRow("Grind", a.grind);
     addRow("Total time", a.brewTime);
   } else if (recipe.id === "frenchPress") {
@@ -614,12 +636,12 @@ function renderBrew(recipe) {
   // Header
   root.appendChild(el("div", { class: "header" }, [
     el("strong", null, recipe.name),
-    el("span", null, formatTime(elapsed)),
+    el("span", { id: "header-time" }, formatTime(elapsed)),
   ]));
 
   // Summary pill
   const sum = el("div", { class: "pills summary-pills" });
-  let summaryText = state.dose + " g / " + formatGrams(a.water);
+  const summaryText = formatGrams(state.dose) + " / " + formatGrams(a.water);
   sum.appendChild(el("div", { class: "pill", "aria-pressed": "true" }, summaryText));
   root.appendChild(sum);
 
@@ -631,7 +653,7 @@ function renderBrew(recipe) {
     else if (i === idx) cls += " current";
     const row = el("div", { class: cls }, [
       el("span", { class: "t" }, formatTime(step.at)),
-      el("span", null, step.label + " - " + step.targetFn(state.dose)),
+      el("span", null, step.label + ": " + step.targetFn(state.dose)),
     ]);
     steps.appendChild(row);
   });
@@ -640,14 +662,15 @@ function renderBrew(recipe) {
   // Big timer
   const timerBlock = el("div", { class: "timer-block" });
   timerBlock.appendChild(el("div", { class: "timer-big", id: "timer-big" }, formatTime(elapsed)));
-  let target = "";
+  const timerTargetEl = el("div", { class: "timer-target", id: "timer-target" });
   if (idx >= 0 && idx < recipe.steps.length) {
     const step = recipe.steps[idx];
-    target = step.label + ": " + step.targetFn(state.dose);
+    timerTargetEl.appendChild(document.createTextNode(step.label + ": "));
+    timerTargetEl.appendChild(el("strong", null, step.targetFn(state.dose)));
   } else if (idx < 0) {
-    target = "Get ready...";
+    timerTargetEl.textContent = "Get ready...";
   }
-  timerBlock.appendChild(el("div", { class: "timer-target", id: "timer-target", html: target }));
+  timerBlock.appendChild(timerTargetEl);
   root.appendChild(timerBlock);
 
   // Stop
@@ -700,10 +723,10 @@ function runTests() {
   // Step advancement
   const poSteps = RECIPES.pourOver.steps;
   eq("currentStepFor(po, 0) === 0", currentStepFor(poSteps, 0), 0);
-  eq("currentStepFor(po, 74) === 0", currentStepFor(poSteps, 74), 0);
-  eq("currentStepFor(po, 75) === 1", currentStepFor(poSteps, 75), 1);
-  eq("currentStepFor(po, 105) === 2", currentStepFor(poSteps, 105), 2);
-  eq("currentStepFor(po, 200) === 3", currentStepFor(poSteps, 200), 3);
+  eq("currentStepFor(po, 44) === 0", currentStepFor(poSteps, 44), 0);
+  eq("currentStepFor(po, 45) === 1", currentStepFor(poSteps, 45), 1);
+  eq("currentStepFor(po, 75) === 2", currentStepFor(poSteps, 75), 2);
+  eq("currentStepFor(po, 150) === 3", currentStepFor(poSteps, 150), 3);
 
   // Dose clamp
   eq("clampDose(0) === 5", clampDose(0), 5);
