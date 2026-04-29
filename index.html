@@ -62,11 +62,12 @@
     color: var(--fg-dim);
     margin-bottom: 6px;
   }
-  .setup > .pills,
-  .setup > .dose,
-  .setup > .amounts,
-  .setup > .recipe-notes {
-    margin-bottom: 16px;
+  .setup,
+  .brew {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
   }
   .pills {
     display: flex;
@@ -558,7 +559,8 @@ function renderSetup(recipe) {
   const root = el("div", { class: "setup" });
 
   // Recipe pills
-  root.appendChild(el("div", { class: "label" }, "Recipe"));
+  const recipeField = el("div", { class: "field" });
+  recipeField.appendChild(el("div", { class: "label" }, "Recipe"));
   const pills = el("div", { class: "pills" });
   RECIPE_ORDER.forEach(id => {
     const r = RECIPES[id];
@@ -576,10 +578,12 @@ function renderSetup(recipe) {
     }, r.name);
     pills.appendChild(p);
   });
-  root.appendChild(pills);
+  recipeField.appendChild(pills);
+  root.appendChild(recipeField);
 
   // Dose input
-  root.appendChild(el("div", { class: "label" }, "Coffee dose"));
+  const doseField = el("div", { class: "field" });
+  doseField.appendChild(el("div", { class: "label" }, "Coffee dose"));
   const dose = el("div", { class: "dose" });
   dose.appendChild(el("div", null, [
     el("div", { class: "dose-num" }, [
@@ -602,7 +606,8 @@ function renderSetup(recipe) {
   if (d >= DOSE_MAX) plus.disabled = true;
   doseBtns.appendChild(minus); doseBtns.appendChild(plus);
   dose.appendChild(doseBtns);
-  root.appendChild(dose);
+  doseField.appendChild(dose);
+  root.appendChild(doseField);
 
   // Amounts table
   const amounts = el("div", { class: "amounts" });
@@ -615,8 +620,8 @@ function renderSetup(recipe) {
   if (recipe.id === "pourOver") {
     addRow("Water (total)", formatGrams(a.water));
     addRow("Bloom", formatGrams(a.bloomLow) + " - " + formatGrams(a.bloomHigh));
-    addRow("Pour 1 by 0:45", formatGrams(a.pour1));
-    addRow("Pour 2 by 1:15", formatGrams(a.pour2));
+    addRow("Pour 1 by 1:15", formatGrams(a.pour1));
+    addRow("Pour 2 by 1:45", formatGrams(a.pour2));
     addRow("Grind", a.grind);
     addRow("Total time", a.brewTime);
   } else if (recipe.id === "frenchPress") {
