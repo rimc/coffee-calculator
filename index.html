@@ -630,6 +630,7 @@ const TIMER_CX = 110;
 const TIMER_CY = 110;
 const TIMER_R = 100;
 const TIMER_CIRC = 2 * Math.PI * TIMER_R;
+const TIMER_GAP = 8; // px gap so a full ring still shows a visible start/end break
 
 function svgEl(tag, attrs) {
   const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
@@ -655,7 +656,7 @@ function buildTimerSvg(recipe, elapsed) {
     class: "timer-progress",
     id: "timer-progress",
     cx: TIMER_CX, cy: TIMER_CY, r: TIMER_R,
-    "stroke-dasharray": TIMER_CIRC.toFixed(3),
+    "stroke-dasharray": (TIMER_CIRC - TIMER_GAP).toFixed(3),
     "stroke-dashoffset": (TIMER_CIRC * (1 - progressFrac)).toFixed(3),
     transform: `rotate(-90 ${TIMER_CX} ${TIMER_CY})`,
   });
