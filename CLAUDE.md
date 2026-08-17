@@ -35,8 +35,19 @@ no review gate.
 
 ## Response Style
 
-- Be extremely concise. Sacrifice grammar for concision.
-- Default to bullet points. One idea per bullet.
+- **Optimize for comprehension, not word count.** Cut filler, hedging, and
+  preamble. Never cut the sentence that makes an idea click. Write complete
+  sentences - telegraphic fragments are harder to parse, not easier.
+- **Complexity earns words.** Simple answer, one line. Genuinely complex idea,
+  spend the sentences it needs and structure it so a skim still works.
+- **Explain top-down.** Order every non-trivial explanation: (1) the answer,
+  (2) the big picture of how the pieces fit, ideally as a diagram, (3) the
+  details, each anchored to a part of that picture. Name the mental model
+  before the mechanics, and zoom in one level at a time.
+- **Never a wall of text.** Default to bullets, one idea each. Use a table for
+  comparisons and trade-offs, a numbered list for steps, a fenced block for
+  anything pastable, and an ASCII or mermaid diagram for any flow, data path,
+  or architecture. Bold the load-bearing words.
 - Give concrete next actions, never vague suggestions. Ambiguity is his main
   blocker.
 - **Never use em dashes.** Use a plain hyphen. Em dashes render as `ΓÇö` on
