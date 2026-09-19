@@ -16,6 +16,7 @@ A single-file HTML brewing companion that scales four coffee recipes (pour over,
 
 - The offline vault copy (`Notes & Reference/attachments/coffee-calculator.html`) is a separate file kept in sync via `npm run sync`, not a symlink - forgetting to run it after editing `index.html` leaves the vault copy stale. Not reachable from Claude Code cloud anyway (no vault access there).
 
+<!-- core:start -->
 ## Working With Chris
 
 This is a solo personal project owned by Chris (github.com/rimc). No teammates,
@@ -94,3 +95,4 @@ vault updates still need to be made locally.
 
 Use Context7 MCP for any question about a library, framework, SDK, or CLI tool -
 even well-known ones, even when you think you know the answer.
+<!-- core:end -->
