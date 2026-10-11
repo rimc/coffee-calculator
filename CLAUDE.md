@@ -85,13 +85,27 @@ no review gate.
 Chris keeps specs, plans, and project notes in an Obsidian vault, **not in this
 repo**. If the vault is present at `C:\Users\chris\Obsidian Vault` (or
 `/mnt/c/Users/chris/Obsidian Vault`), write specs and plans to
-`Projects/<Active|Ideas|Shipped>/<Project Name>/` there, track tasks in that
-folder's `BACKLOG.md`, and log dated narrative entries under `## Log` in the
-canonical project note.
+`Projects/<Active|Ideas|Shipped>/<Project Name>/` there, and log dated narrative
+entries under `## Log` in the canonical project note.
 
-**In Claude Code cloud the vault is not available.** Skip all vault steps, keep
-notes in the repo (README or a `NOTES.md`), and say plainly in your summary that
-vault updates still need to be made locally.
+**Tasks live in that folder's `BACKLOG.md`, and every change to it goes through
+the `backlog` command** (`backlog.exe` on the PATH). Items carry a permanent ID
+like `bt261009a`; find them by ID, never by line number. Never mint an ID or
+edit a backlog line or the Second Shift ledger by hand.
+
+- New item: `backlog new "<project>" "text"`. Wrong or stale text:
+  `backlog edit <id> "text"`.
+- Every commit for an item carries a `Backlog: <id>` trailer (one line per ID).
+- When you finish an item, run `backlog review <id>`. A separate reviewer ticks
+  it. Do not tick it yourself.
+- Only Chris saying "tick it" in the session lets you run `backlog done <id>`.
+- Only Chris can finish it: `backlog escalate <id> "why"`.
+
+**In Claude Code cloud the vault and the `backlog` tool are not available.**
+Skip all vault steps, keep notes in the repo (README or a `NOTES.md`), and say
+plainly in your summary that vault updates still need to be made locally. List
+the backlog item IDs you touched (from `Backlog:` trailers or the task) so they
+can be followed up locally.
 
 Use Context7 MCP for any question about a library, framework, SDK, or CLI tool -
 even well-known ones, even when you think you know the answer.
